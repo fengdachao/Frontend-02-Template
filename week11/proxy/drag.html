@@ -1,0 +1,64 @@
+<html>
+  <body>
+    <div id="textArea">
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+      文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字文字
+    </div>
+
+    <div id="dragable" style="display:inline-block;width:100px;height:100px;background-color:aqua" />
+
+    <script>
+      var ranges = [];
+      var dragable = document.getElementById('dragable');
+      var baseX = 0, baseY = 0;
+
+      dragable.addEventListener('mousedown', function (event) {
+        var startX = event.clientX, startY = event.clientY;
+        
+        var up = function (e) {
+          baseX += e.clientX - startX;
+          baseY += e.clientY - startY;
+          document.removeEventListener('mouseup', up);
+          document.removeEventListener('mousemove', move);
+        }
+        
+        var move = function (e) {
+          const range = getNearest(e.clientX, e.clientY);
+          range.insertNode(dragable);
+          // dragable.style.transform = `translate(${baseX + e.clientX - startX}px, ${baseY + e.clientY - startY}px)`;
+        }
+        
+        document.addEventListener('mouseup', up);
+        document.addEventListener('mousemove', move);
+        document.addEventListener('selectstart', event => event.preventDefault());
+
+        for (let i = 0; i < document.getElementById('textArea').childNodes[0].textContent.length; i++) {
+          const range = document.createRange();
+          range.setStart(document.getElementById('textArea').childNodes[0], i);
+          range.setEnd(document.getElementById('textArea').childNodes[0], i);
+          ranges.push(range);
+        }
+
+        function getNearest (x, y) {
+          let min = Number.MAX_SAFE_INTEGER, nearest = null;
+          for (let r of ranges) {
+            const rect = r.getBoundingClientRect();
+            const distance = Math.pow(rect.x - x, 2) + Math.pow(rect.y - y, 2);
+            if (distance < min) {
+              min = distance;
+              nearest = r;
+            }
+          }
+          return nearest;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<html>
+  <input id="r" type="range" min=0 max=255 />
+  <input id="g" type="range" min=0 max=255 />
+  <input id="b" type="range" min=0 max=255 />
+
+  <div id="color" style="width:100px; height:100px" />
+
+  <script>
+    var callbacks = new Map();
+    var activities = new Map();
+    var useActivities = [];
+
+    var object = {
+      r: 0,
+      g: 0,
+      b: 0
+    };
+
+    var po = reactive(object);
+
+    effect(function () {
+      document.getElementById('r').value = po.r;
+    });
+
+    effect(function () {
+      document.getElementById('g').value = po.g;
+    });
+
+    effect(function () {
+      document.getElementById('b').value = po.b;
+    });
+
+    document.getElementById('r').addEventListener('input', function(event) {
+      po.r = event.target.value;
+    })
+    document.getElementById('g').addEventListener('input', function(event) {
+      po.g = event.target.value;
+    })
+    document.getElementById('b').addEventListener('input', function(event) {
+      po.b = event.target.value;
+    });
+
+    effect(function() {
+      document.getElementById('color').style.backgroundColor = `rgb(${po.r}, ${po.g}, ${po.b})`;
+    })
+
+    function reactive (object) {
+      if (activities.has(object)) return activities.get(object);
+      var proxy = new Proxy(object, {
+        get (target, prop) {
+          useActivities.push([target, prop]);
+          if (typeof target[prop] === 'object' && target[prop] !== null) target[prop] = reactive(target[prop]);
+          return target[prop];
+        },
+        set(target, prop, val) {
+          target[prop] = val;
+          if (callbacks.has(target) && callbacks.get(target).has(prop)) {
+            for (var cb of callbacks.get(target).get(prop)) {
+              cb();
+            }
+          }
+        }
+      });
+      activities.set(object, proxy);
+      return proxy;
+    };
+
+    function effect (callback) {
+      callback();
+      for (let [obj, prop] of useActivities) {
+        if (!callbacks.has(obj)) callbacks.set(obj, new Map());
+        if (!callbacks.get(obj).has(prop)) callbacks.get(obj).set(prop, []);
+        callbacks.get(obj).get(prop).push(callback);
+      }
+    }
+
+  </script>
+</html>
